@@ -92,11 +92,11 @@ class AbstractSize(ABC):
         return self.from_values(self.width ^ other.width, self.height ^ other.height)
 
 
-_MT = TypeVar("_MT", bound="Size")
+_MT = TypeVar("_MT", bound="MutableSize")
 
 
 @attrs(slots=True, auto_attribs=True, eq=True)
-class Size(AbstractSize):
+class MutableSize(AbstractSize):
     """
     A two dimensional representation of a size, that uses ``attrs`` to create a basic
     implementation.

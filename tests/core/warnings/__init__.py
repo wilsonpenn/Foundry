@@ -1,7 +1,7 @@
 from attr import attrs
 
 from foundry.core.point.Point import Point
-from foundry.core.size.Size import Size
+from foundry.core.size.Size import MutableSize
 
 
 @attrs(slots=True, frozen=True, auto_attribs=True)
@@ -20,5 +20,5 @@ class ObjectLike:
         return Point(self.x, self.y)
 
     @property
-    def rendered_size(self) -> Size:
-        return Size(self.rendered_width, self.rendered_height)
+    def rendered_size(self) -> MutableSize:
+        return MutableSize(self.rendered_width, self.rendered_height)

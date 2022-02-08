@@ -9,7 +9,7 @@ from foundry import icon
 from foundry.core.graphics_set.GraphicsSet import GraphicsSetProtocol
 from foundry.core.palette.PaletteGroup import MutablePaletteGroupProtocol
 from foundry.core.point.Point import Point
-from foundry.core.size.Size import Size, SizeProtocol
+from foundry.core.size.Size import MutableSize, SizeProtocol
 from foundry.core.sprites import SPRITE_SIZE
 from foundry.game.gfx.drawable.Sprite import Sprite
 from foundry.gui.CustomChildWindow import CustomChildWindow
@@ -142,7 +142,7 @@ class SpriteViewerView(QWidget):
 
     @property
     def sprite_size(self) -> SizeProtocol:
-        return Size(SPRITE_SIZE.width * self.zoom, SPRITE_SIZE.height * self.zoom)
+        return MutableSize(SPRITE_SIZE.width * self.zoom, SPRITE_SIZE.height * self.zoom)
 
     def mouseMoveEvent(self, event: QMouseEvent):
         pos = Point.from_qpoint(event.pos())
