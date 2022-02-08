@@ -115,3 +115,28 @@ class MutableSize(AbstractSize):
     @classmethod
     def from_values(cls: Type[_MT], width: int, height: int) -> _MT:
         return cls(width, height)
+
+
+_IT = TypeVar("_IT", bound="Size")
+
+
+@attrs(slots=True, auto_attribs=True, eq=True, frozen=True, hash=True)
+class Size(AbstractSize):
+    """
+    A two dimensional representation of a size, that uses ``attrs`` to create a basic
+    implementation.
+
+    Attributes
+    ----------
+    width: int
+        The width of the object being represented.
+    height: int
+        The height of the object being represented.
+    """
+
+    width: int
+    height: int
+
+    @classmethod
+    def from_values(cls: Type[_IT], width: int, height: int) -> _IT:
+        return cls(width, height)
