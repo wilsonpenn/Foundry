@@ -19,7 +19,7 @@ class SizeProtocol(Protocol):
     height: int
 
 
-@attrs(slots=True, auto_attribs=True)
+@attrs(slots=True, auto_attribs=True, eq=True)
 class Size:
     """
     A two dimensional representation of a size, that uses ``attrs`` to create a basic
