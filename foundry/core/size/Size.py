@@ -46,6 +46,23 @@ class AbstractSize(ABC):
         """
         ...
 
+    @classmethod
+    def from_size(cls: Type[_T], size: SizeProtocol) -> _T:
+        """
+        Generates a size from a size protocol.
+
+        Parameters
+        ----------
+        size : SizeProtocol
+            The size protocol to be mapped to this size.
+
+        Returns
+        -------
+        _T
+            The size converted to this type.
+        """
+        return cls.from_values(size.width, size.height)
+
     def __lt__(self, other: SizeProtocol):
         return self.width * self.height < other.width * other.height
 
