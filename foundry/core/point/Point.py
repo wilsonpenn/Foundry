@@ -197,5 +197,5 @@ class PydanticPoint(BaseModel):
     y: int
 
     @property
-    def size(self) -> PointProtocol:
+    def point(self) -> PointProtocol:
         return Point(self.x, self.y)
