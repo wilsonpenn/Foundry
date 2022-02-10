@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Protocol, Type, TypeVar
 
 from attr import attrs
+from pydantic import BaseModel, validator
 
 
 class SizeProtocol(Protocol):
@@ -145,3 +146,18 @@ class Size(AbstractSize):
     @classmethod
     def from_values(cls: Type[_IT], width: int, height: int) -> _IT:
         return cls(width, height)
+
+
+class PydanticSize(BaseModel):
+    width: int
+    height: int
+
+    @validator("width", "height", allow_reuse=True)
+    def check_size_range(cls, v):
+        if not v > 0:
+            raise ValueError(f"{v} must be one or greater")
+        return v
+
+    @property
+    def size(self) -> SizeProtocol:
+        return Size(self.width, self.height)

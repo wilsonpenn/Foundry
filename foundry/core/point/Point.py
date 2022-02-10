@@ -3,6 +3,7 @@ from math import sqrt
 from typing import Protocol, Type, TypeVar
 
 from attr import attrs
+from pydantic import BaseModel
 from PySide6.QtCore import QPoint
 
 
@@ -172,3 +173,12 @@ class Point(AbstractPoint):
     @classmethod
     def from_values(cls: Type[_IT], x: int, y: int) -> _IT:
         return cls(x, y)
+
+
+class PydanticPoint(BaseModel):
+    x: int
+    y: int
+
+    @property
+    def size(self) -> PointProtocol:
+        return Point(self.x, self.y)
