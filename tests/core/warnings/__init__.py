@@ -1,6 +1,6 @@
 from attr import attrs
 
-from foundry.core.point.Point import Point
+from foundry.core.point.Point import MutablePoint
 from foundry.core.size.Size import MutableSize
 
 
@@ -16,8 +16,8 @@ class ObjectLike:
         return True
 
     @property
-    def position(self) -> Point:
-        return Point(self.x, self.y)
+    def position(self) -> MutablePoint:
+        return MutablePoint(self.x, self.y)
 
     @property
     def rendered_size(self) -> MutableSize:

@@ -21,7 +21,7 @@ class PointProtocol(Protocol):
 
 
 @attrs(slots=True, auto_attribs=True)
-class Point:
+class MutablePoint:
     """
     A two dimensional representation of a point on a plain, that uses ``attrs`` to create a basic
     implementation.
