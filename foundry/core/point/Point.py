@@ -53,6 +53,23 @@ class AbstractPoint(ABC):
         ...
 
     @classmethod
+    def from_point(cls: Type[_T], point: PointProtocol) -> _T:
+        """
+        Generates a point from a point protocol.
+
+        Parameters
+        ----------
+        point : PointProtocol
+            The point protocol to be converted to this type.
+
+        Returns
+        -------
+        AbstractPoint
+            Of the same point protocol mapped to this type.
+        """
+        return cls.from_values(point.x, point.y)
+
+    @classmethod
     def from_qpoint(cls: Type[_T], point: QPoint) -> _T:
         """
         Generates a point from a QPoint for easy conversion.
