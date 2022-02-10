@@ -26,6 +26,11 @@ class PointProtocol(Protocol):
         ...
 
 
+class HashablePointProtocol(PointProtocol, Protocol):
+    def __hash__(self) -> int:
+        ...
+
+
 _T = TypeVar("_T", bound="AbstractPoint")
 
 

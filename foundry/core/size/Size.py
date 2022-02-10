@@ -20,6 +20,11 @@ class SizeProtocol(Protocol):
     height: int
 
 
+class HashableSizeProtocol(SizeProtocol, Protocol):
+    def __hash__(self) -> int:
+        ...
+
+
 _T = TypeVar("_T", bound="AbstractSize")
 
 
