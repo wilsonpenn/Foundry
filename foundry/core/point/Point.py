@@ -142,3 +142,28 @@ class MutablePoint(AbstractPoint):
     @classmethod
     def from_values(cls: Type[_MT], x: int, y: int) -> _MT:
         return cls(x, y)
+
+
+_IT = TypeVar("_IT", bound="Point")
+
+
+@attrs(slots=True, auto_attribs=True, eq=True, frozen=True, hash=True)
+class Point(AbstractPoint):
+    """
+    A two dimensional representation of a point on a plain, that uses ``attrs`` to create a basic
+    implementation.
+
+    Attributes
+    ----------
+    x: int
+        The horizontal location of the point.
+    y: int
+        The vertical location of the point.
+    """
+
+    x: int
+    y: int
+
+    @classmethod
+    def from_values(cls: Type[_IT], x: int, y: int) -> _IT:
+        return cls(x, y)
