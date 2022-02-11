@@ -50,7 +50,7 @@ class GraphicsSet:
         return cls(get_graphics_pages_from_tileset(index))
 
 
-class PydanticGraphicsPage(BaseModel):
+class PydanticGraphicsSet(BaseModel):
     """
     A JSON model of a generic GraphicsSet through Pydantic.
 
