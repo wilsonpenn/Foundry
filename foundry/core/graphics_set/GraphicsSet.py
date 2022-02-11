@@ -62,5 +62,6 @@ class PydanticGraphicsSet(BaseModel):
 
     pages: list[PydanticGraphicsPage]
 
-    def to_graphics_set(self) -> GraphicsSetProtocol:
+    @property
+    def graphics_set(self) -> GraphicsSetProtocol:
         return GraphicsSet(tuple(page.to_graphics_page() for page in self.pages))
