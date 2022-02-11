@@ -51,6 +51,10 @@ class Block:
     ) -> _T:
         return cls(Point.from_point(point), patterns, palette_index, do_not_render)
 
+    @classmethod
+    def from_block(cls: Type[_T], block: BlockProtocol) -> _T:
+        return cls.from_values(block.point, block.patterns, block.palette_index, block.do_not_render)
+
 
 class PydanticBlock(BaseModel):
     point: PydanticPoint
