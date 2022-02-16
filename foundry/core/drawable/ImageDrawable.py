@@ -45,6 +45,10 @@ class PydanticImageDrawable(Drawable):
     image_offset: Optional[PydanticRect] = None
     use_transparency: bool = True
 
+    class Config:
+        arbitrary_types_allowed = True
+        keep_untouched = (cached_property,)
+
     @cached_property
     def drawable(self) -> DrawableProtocol:
         return ImageDrawable(
