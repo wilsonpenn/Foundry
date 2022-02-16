@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from foundry.core.namespace import NamespaceType
 from foundry.core.namespace.DrawableNamespace import PydanticDrawableNamespace
-from foundry.core.namespace.Namespace import NamespaceProtocol, PydanticNamespace
+from foundry.core.namespace.Namespace import PydanticNamespace
 
 
 class NamespaceGeneratator(BaseModel):
@@ -39,7 +39,7 @@ class NamespaceGeneratator(BaseModel):
         raise NotImplementedError(f"There is no namespace of type {type_}")
 
     @classmethod
-    def validate(cls, v: dict) -> NamespaceProtocol:
+    def validate(cls, v: dict) -> PydanticNamespace:
         """
         Validates that the provided object is a valid NamespaceProtocol.
 
