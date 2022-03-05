@@ -6,6 +6,9 @@ class NamespaceType(str, Enum):
     The type of elements allowed inside the namespace.
     """
 
+    INTEGER = "INTEGER"
+    STRING = "STRING"
+    FLOAT = "FLOAT"
     DRAWABLE = "DRAWABLE"
 
     @classmethod
