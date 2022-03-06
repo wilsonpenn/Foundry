@@ -2,7 +2,17 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections import ChainMap, deque
-from typing import Any, Generic, Optional, Protocol, Sequence, Type, TypeVar, Union
+from typing import (
+    Any,
+    Generic,
+    Iterator,
+    Optional,
+    Protocol,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from attr import attrs, field
 from pydantic import BaseModel
@@ -63,6 +73,23 @@ class PartialNamespace(Generic[_T], ABC):
             and self.children == other.children
         )
 
+    def __iter__(self) -> Iterator:
+        return iter(self.public_elements)
+
+    def __getitem__(self, key: str) -> Any:
+        return self.public_elements[key]
+
+    def __dict__(self) -> dict:
+        return {
+            "dependencies": {k: v.__dict__() for k, v in self.dependencies.items()},
+            "elements": self.elements,
+            "children": {k: v.__dict__() for k, v in self.children.items()},
+        }
+
+    @property
+    def public_elements(self) -> ChainMap:
+        return ChainMap(self.elements, *[d.elements for d in self.dependencies.values()])
+
     @property
     def root(self) -> NamespaceProtocol:
         parent = self
@@ -102,16 +129,6 @@ class PartialNamespace(Generic[_T], ABC):
     @classmethod
     def from_namespace(cls, namespace: NamespaceProtocol[_PT]) -> PartialNamespace[_PT]:
         return cls.from_values(namespace.parent, namespace.dependencies, namespace.elements, namespace.children)
-
-    def __dict__(self) -> dict:
-        return {
-            "dependencies": {k: v.__dict__() for k, v in self.dependencies.items()},
-            "elements": self.elements,
-            "children": {k: v.__dict__() for k, v in self.children.items()},
-        }
-
-    def __getitem__(self, key: str) -> Any:
-        return ChainMap(self.elements, *[d.elements for d in self.dependencies.values()])[key]
 
 
 @attrs(slots=True, auto_attribs=True, cmp=False)

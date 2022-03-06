@@ -410,3 +410,15 @@ def test_namespace_root_not_none(all_namespaces):
         if namespace.parent is not None:
             namespace.root
             assert namespace.root is not namespace
+
+
+def test_namespace_get_item_must_be_element_or_dependency(all_namespaces):
+    for namespace in all_namespaces:
+        for name in namespace:
+            name_exist = False
+            if name in namespace.elements:
+                name_exist = True
+            for d in namespace.dependencies.values():
+                if name in d.elements:
+                    name_exist = True
+            assert name_exist
