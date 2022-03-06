@@ -180,77 +180,82 @@ def namespace_with_parent_with_dependencies_with_children_with_elements(empty_na
 
 @fixture
 def empty_mutable_namespace():
-    return MutableNamespace(None, {}, {}, {})
+    def wrapper():
+        return MutableNamespace(None, {}, {}, {})
+
+    return wrapper
 
 
 @fixture
 def mutable_namespace_with_parent(empty_mutable_namespace):
-    return MutableNamespace(empty_mutable_namespace, {}, {}, {})
+    return MutableNamespace(empty_mutable_namespace(), {}, {}, {})
 
 
 @fixture
 def mutable_namespace_with_dependency(empty_mutable_namespace):
-    return MutableNamespace(None, {"a": empty_mutable_namespace}, {}, {})
+    return MutableNamespace(None, {"a": empty_mutable_namespace()}, {}, {})
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency(empty_mutable_namespace):
-    return MutableNamespace(empty_mutable_namespace, {"a": empty_mutable_namespace}, {}, {})
+    return MutableNamespace(empty_mutable_namespace(), {"a": empty_mutable_namespace()}, {}, {})
 
 
 @fixture
 def mutable_namespace_with_dependencies(empty_mutable_namespace):
-    return MutableNamespace(None, {"a": empty_mutable_namespace, "b": empty_mutable_namespace}, {}, {})
+    return MutableNamespace(None, {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()}, {}, {})
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace, {"a": empty_mutable_namespace, "b": empty_mutable_namespace}, {}, {}
+        empty_mutable_namespace(), {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()}, {}, {}
     )
 
 
 @fixture
 def mutable_namespace_with_dependency_with_child(empty_mutable_namespace):
-    return MutableNamespace(None, {"a": empty_mutable_namespace}, {}, {"a": empty_mutable_namespace})
+    return MutableNamespace(None, {"a": empty_mutable_namespace()}, {}, {"a": empty_mutable_namespace()})
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency_with_child(empty_mutable_namespace):
-    return MutableNamespace(empty_mutable_namespace, {"a": empty_mutable_namespace}, {}, {"a": empty_mutable_namespace})
+    return MutableNamespace(
+        empty_mutable_namespace(), {"a": empty_mutable_namespace()}, {}, {"a": empty_mutable_namespace()}
+    )
 
 
 @fixture
 def mutable_namespace_with_dependencies_with_child(empty_mutable_namespace):
     return MutableNamespace(
-        None, {"a": empty_mutable_namespace, "b": empty_mutable_namespace}, {}, {"a": empty_mutable_namespace}
+        None, {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()}, {}, {"a": empty_mutable_namespace()}
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies_with_child(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {},
-        {"a": empty_mutable_namespace},
+        {"a": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_dependency_with_children(empty_mutable_namespace):
     return MutableNamespace(
-        None, {"a": empty_mutable_namespace}, {}, {"a": empty_mutable_namespace, "b": empty_mutable_namespace}
+        None, {"a": empty_mutable_namespace()}, {}, {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()}
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency_with_children(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace()},
         {},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
@@ -258,65 +263,71 @@ def mutable_namespace_with_parent_with_dependency_with_children(empty_mutable_na
 def mutable_namespace_with_dependencies_with_children(empty_mutable_namespace):
     return MutableNamespace(
         None,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies_with_children(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_dependency_with_child_with_element(empty_mutable_namespace):
-    return MutableNamespace(None, {"a": empty_mutable_namespace}, {"c": 1}, {"a": empty_mutable_namespace})
+    return MutableNamespace(None, {"a": empty_mutable_namespace()}, {"c": 1}, {"a": empty_mutable_namespace()})
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency_with_child_with_element(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace, {"a": empty_mutable_namespace}, {"c": 1}, {"a": empty_mutable_namespace}
+        empty_mutable_namespace(), {"a": empty_mutable_namespace()}, {"c": 1}, {"a": empty_mutable_namespace()}
     )
 
 
 @fixture
 def mutable_namespace_with_dependencies_with_child_with_element(empty_mutable_namespace):
     return MutableNamespace(
-        None, {"a": empty_mutable_namespace, "b": empty_mutable_namespace}, {"c": 1}, {"a": empty_mutable_namespace}
+        None,
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
+        {"c": 1},
+        {"a": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies_with_child_with_element(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1},
-        {"a": empty_mutable_namespace},
+        {"a": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_dependency_with_children_with_element(empty_mutable_namespace):
     return MutableNamespace(
-        None, {"a": empty_mutable_namespace}, {"c": 1}, {"a": empty_mutable_namespace, "b": empty_mutable_namespace}
+        None,
+        {"a": empty_mutable_namespace()},
+        {"c": 1},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency_with_children_with_element(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace()},
         {"c": 1},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
@@ -324,31 +335,31 @@ def mutable_namespace_with_parent_with_dependency_with_children_with_element(emp
 def mutable_namespace_with_dependencies_with_children_with_element(empty_mutable_namespace):
     return MutableNamespace(
         None,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies_with_children_with_element(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_dependency_with_child_with_elements(empty_mutable_namespace):
-    return MutableNamespace(None, {"a": empty_mutable_namespace}, {"c": 1, "d": 2}, {"a": empty_mutable_namespace})
+    return MutableNamespace(None, {"a": empty_mutable_namespace()}, {"c": 1, "d": 2}, {"a": empty_mutable_namespace()})
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency_with_child_with_elements(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace, {"a": empty_mutable_namespace}, {"c": 1, "d": 2}, {"a": empty_mutable_namespace}
+        empty_mutable_namespace(), {"a": empty_mutable_namespace()}, {"c": 1, "d": 2}, {"a": empty_mutable_namespace()}
     )
 
 
@@ -356,19 +367,19 @@ def mutable_namespace_with_parent_with_dependency_with_child_with_elements(empty
 def mutable_namespace_empty_with_dependencies_with_child_with_elements(empty_mutable_namespace):
     return MutableNamespace(
         None,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1, "d": 2},
-        {"a": empty_mutable_namespace},
+        {"a": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies_with_child_with_elements(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1, "d": 2},
-        {"a": empty_mutable_namespace},
+        {"a": empty_mutable_namespace()},
     )
 
 
@@ -376,19 +387,19 @@ def mutable_namespace_with_parent_with_dependencies_with_child_with_elements(emp
 def mutable_namespace_empty_with_dependency_with_children_with_elements(empty_mutable_namespace):
     return MutableNamespace(
         None,
-        {"a": empty_mutable_namespace},
+        {"a": empty_mutable_namespace()},
         {"c": 1, "d": 2},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependency_with_children_with_elements(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace()},
         {"c": 1, "d": 2},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
@@ -396,19 +407,19 @@ def mutable_namespace_with_parent_with_dependency_with_children_with_elements(em
 def mutable_namespace_empty_with_dependencies_with_children_with_elements(empty_mutable_namespace):
     return MutableNamespace(
         None,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1, "d": 2},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
 @fixture
 def mutable_namespace_with_parent_with_dependencies_with_children_with_elements(empty_mutable_namespace):
     return MutableNamespace(
-        empty_mutable_namespace,
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        empty_mutable_namespace(),
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
         {"c": 1, "d": 2},
-        {"a": empty_mutable_namespace, "b": empty_mutable_namespace},
+        {"a": empty_mutable_namespace(), "b": empty_mutable_namespace()},
     )
 
 
@@ -478,7 +489,7 @@ def all_namespaces(
 
     return [
         empty_namespace,
-        empty_mutable_namespace,
+        empty_mutable_namespace(),
         namespace_with_parent,
         mutable_namespace_with_parent,
         namespace_with_parent_with_dependencies,

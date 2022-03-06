@@ -65,10 +65,13 @@ class PartialNamespace(Generic[_T], ABC):
 
     @property
     def root(self) -> NamespaceProtocol:
-        if self.parent is None:
-            return self  # type: ignore
-        else:
-            return self.parent.root
+        parent = self
+        while parent.parent is not None:
+            assert parent is not parent.parent
+            parent = parent.parent
+            assert self is not parent
+
+        return parent
 
     @classmethod
     @abstractmethod
