@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from collections import ChainMap, deque
 from typing import Any, Generic, Optional, Protocol, Sequence, Type, TypeVar, Union
 
-from attr import attrs
+from attr import attrs, field
 from pydantic import BaseModel
 
 from foundry.core.namespace import NamespaceType
@@ -19,6 +20,9 @@ class NamespaceProtocol(Protocol, Generic[_T]):
 
     @property
     def root(self) -> NamespaceProtocol:
+        ...
+
+    def __dict__(self) -> dict:
         ...
 
     def __getitem__(self, key: str) -> Any:
@@ -43,56 +47,154 @@ class PydanticNamespaceProtocol(Protocol, Generic[_PT]):
         ...
 
 
-class PartialNamespace(Generic[_T]):
+class PartialNamespace(Generic[_T], ABC):
     parent: Optional[NamespaceProtocol]
     dependencies: dict[str, NamespaceProtocol]
     elements: dict[str, _T]
     children: dict[str, NamespaceProtocol]
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, PartialNamespace):
+            return False
+
+        return (
+            self.dependencies == other.dependencies
+            and self.elements == other.elements
+            and self.children == other.children
+        )
+
     @property
     def root(self) -> NamespaceProtocol:
         if self.parent is None:
-            return self
+            return self  # type: ignore
         else:
             return self.parent.root
+
+    @classmethod
+    @abstractmethod
+    def from_values(
+        cls,
+        parent: Optional[NamespaceProtocol],
+        dependencies: dict[str, NamespaceProtocol],
+        elements: dict[str, _PT],
+        children: dict[str, NamespaceProtocol],
+    ) -> PartialNamespace[_PT]:
+        ...
+
+    @classmethod
+    def from_dict(
+        cls,
+        parent: Optional[dict],
+        dependencies: dict[str, dict],
+        elements: dict[str, _PT],
+        children: dict[str, dict],
+    ) -> PartialNamespace[_PT]:
+        return cls.from_values(
+            parent=cls.from_dict(**parent) if parent is not None else None,
+            dependencies={k: cls.from_values(parent=None, **v) for k, v in dependencies.items()},
+            elements=elements,
+            children={k: cls.from_values(parent=None, **v) for k, v in children.items()},
+        )
+
+    @classmethod
+    def from_namespace(cls, namespace: NamespaceProtocol[_PT]) -> PartialNamespace[_PT]:
+        return cls.from_values(namespace.parent, namespace.dependencies, namespace.elements, namespace.children)
+
+    def __dict__(self) -> dict:
+        return {
+            "dependencies": {k: v.__dict__() for k, v in self.dependencies.items()},
+            "elements": self.elements,
+            "children": {k: v.__dict__() for k, v in self.children.items()},
+        }
 
     def __getitem__(self, key: str) -> Any:
         return ChainMap(self.elements, *[d.elements for d in self.dependencies.values()])[key]
 
 
-@attrs(slots=True, auto_attribs=True, eq=True)
+@attrs(slots=True, auto_attribs=True, cmp=False)
 class MutableNamespace(PartialNamespace[_T]):
-    parent: Optional[NamespaceProtocol]
-    dependencies: dict[str, NamespaceProtocol]
-    elements: dict[str, _T]
-    children: dict[str, NamespaceProtocol]
+    parent: Optional[NamespaceProtocol] = field(eq=False, default=None)
+    dependencies: dict[str, NamespaceProtocol] = field(default={})
+    elements: dict[str, _T] = field(default={})
+    children: dict[str, MutableNamespace] = field(default={})
 
-    @staticmethod
-    def from_namespace(namespace: NamespaceProtocol[_PT]) -> MutableNamespace[_PT]:
-        return MutableNamespace(namespace.parent, namespace.dependencies, namespace.elements, namespace.children)
+    def __attrs_post_init__(self):
+        for child in self.children.values():
+            child.parent = self
 
+    @classmethod
+    def from_namespace(cls, namespace: NamespaceProtocol[_PT]) -> MutableNamespace[_PT]:
+        return super().from_namespace(namespace)  # type: ignore
 
-@attrs(slots=True, auto_attribs=True, eq=True, frozen=True, hash=True)
-class Namespace(PartialNamespace[_T]):
-    parent: Optional[Namespace]
-    dependencies: dict[str, Namespace]
-    elements: dict[str, _T]
-    children: dict[str, Namespace]
+    @classmethod
+    def from_values(
+        cls,
+        parent: Optional[NamespaceProtocol],
+        dependencies: dict[str, NamespaceProtocol],
+        elements: dict[str, _PT],
+        children: dict[str, NamespaceProtocol],
+    ) -> MutableNamespace[_PT]:
+        return MutableNamespace(parent, dependencies, elements, {k: cls.from_namespace(v) for k, v in children.items()})
 
-    @staticmethod
-    def from_namespace(namespace: NamespaceProtocol[_PT]) -> Namespace[_PT]:
-        parent = (
-            namespace.parent
-            if namespace.parent is None or isinstance(namespace.parent, Namespace)
-            else Namespace.from_namespace(namespace.parent)
+    @classmethod
+    def from_dict(
+        cls,
+        parent: Optional[dict],
+        dependencies: dict[str, dict],
+        elements: dict[str, _PT],
+        children: dict[str, dict],
+    ) -> MutableNamespace[_PT]:
+        return cls.from_values(
+            parent=cls.from_dict(**parent) if parent is not None else None,
+            dependencies={k: cls.from_values(parent=None, **v) for k, v in dependencies.items()},
+            elements=elements,
+            children={k: cls.from_values(parent=None, **v) for k, v in children.items()},
         )
-        dependencies = {
-            s: d if isinstance(d, Namespace) else Namespace.from_namespace(d) for s, d in namespace.dependencies.items()
+
+
+@attrs(slots=True, auto_attribs=True, frozen=True, hash=True, cache_hash=True, cmp=False)
+class Namespace(PartialNamespace[_T]):
+    parent: Optional[NamespaceProtocol] = field(eq=False, default=None)
+    dependencies: dict[str, Namespace] = field(default={})
+    elements: dict[str, _T] = field(default={})
+    children: dict[str, Namespace] = field(default={})
+
+    def __attrs_post_init__(self):
+        # Get around frozen object to magically make children connect to parent.
+        object.__setattr__(
+            self,
+            "children",
+            {k: Namespace.from_values(self, v.dependencies, v.elements, v.children) for k, v in self.children.items()},
+        )
+
+    @classmethod
+    def from_namespace(cls, namespace: NamespaceProtocol[_PT]) -> Namespace[_PT]:
+        return super().from_namespace(namespace)  # type: ignore
+
+    @classmethod
+    def from_dict(
+        cls,
+        parent: Optional[dict],
+        dependencies: dict[str, dict],
+        elements: dict[str, _PT],
+        children: dict[str, dict],
+    ) -> Namespace[_PT]:
+        return Namespace.from_namespace(MutableNamespace.from_dict(parent, dependencies, elements, children))
+
+    @classmethod
+    def from_values(
+        cls,
+        parent: Optional[NamespaceProtocol],
+        dependencies: dict[str, NamespaceProtocol],
+        elements: dict[str, _PT],
+        children: dict[str, NamespaceProtocol],
+    ) -> Namespace[_PT]:
+        dependencies_ = {
+            s: d if isinstance(d, Namespace) else Namespace.from_namespace(d) for s, d in dependencies.items()
         }
-        children = {
-            s: c if isinstance(c, Namespace) else Namespace.from_namespace(c) for s, c in namespace.children.items()
-        }
-        return Namespace(parent, dependencies, namespace.elements, children)
+        children_ = {s: c if isinstance(c, Namespace) else Namespace.from_namespace(c) for s, c in children.items()}
+
+        return Namespace(parent, dependencies_, elements, children_)
 
 
 class NamespaceNotInitializedException(Exception):
