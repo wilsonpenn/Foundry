@@ -23,6 +23,29 @@ _T = TypeVar("_T")
 
 
 class NamespaceProtocol(Protocol, Generic[_T]):
+    """
+    A representation of a namespace to hold a series of elements and dependencies inside.  Each element will be
+    of the same type whereas, dependencies each can contain their own type respectively.  Each dependency must be
+    related to this instance in some way, relative to this instance's parent.  Likewise, this element can contain
+    multiple children, who can reference anything that this instance can and this instance or any of this instance's
+    other children, assuming that child doesn't also reference it.
+
+    Attributes
+    ----------
+    parent: Optional[NamespaceProtocol]
+        The parent of this namespace, which can be used to find dependencies for itself or its children.  If parent
+        is None, then this instance is the root and cannot have any dependencies.
+    dependencies: dict[str, NamespaceProtocol]
+        A series of dependencies that are included without priority to the scope, or dictionary interface, of this
+        instance.  Likewise, other elements of this instance can refer to dependencies' elements.
+    elements: dict[str, _T]
+        A series of items that can be referred to inside this namespace's scope and can utilize the dependencies.
+    children: dict[str, NamespaceProtocol]
+        A series of other namespaces that use this instance as its parent.  If any child does not have this instance
+        set as its parent, it will automatically be updated to reflect this, provided that this operation is
+        possible.
+    """
+
     parent: Optional[NamespaceProtocol]
     dependencies: dict[str, NamespaceProtocol]
     elements: dict[str, _T]
@@ -30,9 +53,26 @@ class NamespaceProtocol(Protocol, Generic[_T]):
 
     @property
     def root(self) -> NamespaceProtocol:
+        """
+        Finds the namespace without a parent.  From the root node all other namespaces of the same vein should
+        be accessible.
+
+        Returns
+        -------
+        NamespaceProtocol
+            The namespace whose parent is None.
+        """
         ...
 
     def __dict__(self) -> dict:
+        """
+        Converts the namespace to a dict that can be reconstructed back into itself.
+
+        Returns
+        -------
+        dict
+            A dict that represents a namespace.
+        """
         ...
 
     def __getitem__(self, key: str) -> Any:
@@ -43,6 +83,25 @@ _PT = TypeVar("_PT")
 
 
 class PydanticNamespaceProtocol(Protocol, Generic[_PT]):
+    """
+    A converted from JSON to a namespace.
+
+    Attributes
+    ----------
+    parent: Optional[NamespaceProtocol]
+        The parent of this namespace, which can be used to find dependencies for itself or its children.  If parent
+        is None, then this instance is the root and cannot have any dependencies.
+    dependencies: dict[str, NamespaceProtocol]
+        A series of dependencies that are included without priority to the scope, or dictionary interface, of this
+        instance.  Likewise, other elements of this instance can refer to dependencies' elements.
+    elements: dict[str, _PT]
+        A series of items that can be referred to inside this namespace's scope and can utilize the dependencies.
+    children: dict[str, NamespaceProtocol]
+        A series of other namespaces that use this instance as its parent.  If any child does not have this instance
+        set as its parent, it will automatically be updated to reflect this, provided that this operation is
+        possible.
+    """
+
     parent: Optional[NamespaceProtocol]
     dependencies: dict[str, NamespaceProtocol]
     elements: dict[str, _PT]
@@ -50,20 +109,82 @@ class PydanticNamespaceProtocol(Protocol, Generic[_PT]):
 
     @property
     def namespace(self) -> NamespaceProtocol[_PT]:
+        """
+        A converted namespace that encapsulates the full functionality of a namespace.
+
+        Returns
+        -------
+        NamespaceProtocol[_PT]
+            A namespace which represents the JSON parsed inside this namespace.
+        """
         ...
 
     @classmethod
     def validate(cls, v: dict) -> PydanticNamespaceProtocol[_PT]:
+        """
+        Validates and parses the dict into an instance if applicable.
+
+        Parameters
+        ----------
+        v : dict
+            The JSON data represented as a dict.
+
+        Returns
+        -------
+        PydanticNamespaceProtocol[_PT]
+            The corresponding namespace who represents the data inside the dict.
+        """
         ...
 
 
 class PartialNamespace(Generic[_T], ABC):
+    """
+    A partial implementation of the NamespaceProtocol.  This provides the core interface for creating a namespace,
+    while enabling extension of such elements.
+
+    Attributes
+    ----------
+    parent: Optional[NamespaceProtocol]
+        The parent of this namespace, which can be used to find dependencies for itself or its children.  If parent
+        is None, then this instance is the root and cannot have any dependencies.
+    dependencies: dict[str, NamespaceProtocol]
+        A series of dependencies that are included without priority to the scope, or dictionary interface, of this
+        instance.  Likewise, other elements of this instance can refer to dependencies' elements.
+    elements: dict[str, _T]
+        A series of items that can be referred to inside this namespace's scope and can utilize the dependencies.
+    children: dict[str, NamespaceProtocol]
+        A series of other namespaces that use this instance as its parent.  If any child does not have this instance
+        set as its parent, it will automatically be updated to reflect this, provided that this operation is
+        possible.
+    """
+
     parent: Optional[NamespaceProtocol]
     dependencies: dict[str, NamespaceProtocol]
     elements: dict[str, _T]
     children: dict[str, NamespaceProtocol]
 
     def __eq__(self, other) -> bool:
+        """
+        Tests for equality between two elements.
+
+        Parameters
+        ----------
+        other : Any
+            The other element to be compared.
+
+        Returns
+        -------
+        bool
+            If these self and other are equivalent.
+
+        Notes
+        -----
+        The only specification for something to be equal is that is a subclass of PartialNamespace.  Thus any
+        children of PartialNamespace can be equal to one another.
+
+        Parent is not checked for equality, as this creates a recursive loop.  Instead, it is advised to check the
+        root for equality if such a check is desired.
+        """
         if not isinstance(other, PartialNamespace):
             return False
 
@@ -80,6 +201,14 @@ class PartialNamespace(Generic[_T], ABC):
         return self.public_elements[key]
 
     def __dict__(self) -> dict:
+        """
+        Converts the namespace to a dict that can be reconstructed back into itself.
+
+        Returns
+        -------
+        dict
+            A dict that represents a namespace.
+        """
         return {
             "dependencies": {k: v.__dict__() for k, v in self.dependencies.items()},
             "elements": self.elements,
@@ -88,10 +217,27 @@ class PartialNamespace(Generic[_T], ABC):
 
     @property
     def public_elements(self) -> ChainMap:
+        """
+        The entire dict of elements that can be accessed via the dictionary interface.
+
+        Returns
+        -------
+        ChainMap
+            A dict containing the elements of this instance and any public facing elements from its dependencies.
+        """
         return ChainMap(self.elements, *[d.elements for d in self.dependencies.values()])
 
     @property
     def root(self) -> NamespaceProtocol:
+        """
+        Finds the namespace without a parent.  From the root node all other namespaces of the same vein should
+        be accessible.
+
+        Returns
+        -------
+        NamespaceProtocol
+            The namespace whose parent is None.
+        """
         parent = self
         while parent.parent is not None:
             assert parent is not parent.parent
@@ -109,6 +255,29 @@ class PartialNamespace(Generic[_T], ABC):
         elements: dict[str, _PT],
         children: dict[str, NamespaceProtocol],
     ) -> PartialNamespace[_PT]:
+        """
+        Creates a namespace with full accordance to the NamespaceProtocol, converting any fields if required.
+
+        Parameters
+        ----------
+        parent: Optional[NamespaceProtocol]
+            The parent of this namespace, which can be used to find dependencies for itself or its children.  If parent
+            is None, then this instance is the root and cannot have any dependencies.
+        dependencies: dict[str, NamespaceProtocol]
+            A series of dependencies that are included without priority to the scope, or dictionary interface, of this
+            instance.  Likewise, other elements of this instance can refer to dependencies' elements.
+        elements: dict[str, _T]
+            A series of items that can be referred to inside this namespace's scope and can utilize the dependencies.
+        children: dict[str, NamespaceProtocol]
+            A series of other namespaces that use this instance as its parent.  If any child does not have this instance
+            set as its parent, it will automatically be updated to reflect this, provided that this operation is
+            possible.
+
+        Returns
+        -------
+        PartialNamespace[_PT]
+            The created namespace that represent each of the respective fields from the NamespaceProtocol.
+        """
         ...
 
     @classmethod
@@ -119,6 +288,29 @@ class PartialNamespace(Generic[_T], ABC):
         elements: dict[str, _PT],
         children: dict[str, dict],
     ) -> PartialNamespace[_PT]:
+        """
+        Creates a namespace back from the __dict__ method, converting any required fields back to a NamespaceProtocol.
+
+        Parameters
+        ----------
+        parent : Optional[dict]
+            The parent of this namespace, which can be used to find dependencies for itself or its children.  If parent
+            is None, then this instance is the root and cannot have any dependencies.
+        dependencies : dict[str, dict]
+            A series of dependencies that are included without priority to the scope, or dictionary interface, of this
+            instance.  Likewise, other elements of this instance can refer to dependencies' elements.
+        elements : dict[str, _PT]
+            A series of items that can be referred to inside this namespace's scope and can utilize the dependencies.
+        children : dict[str, dict]
+            A series of other namespaces that use this instance as its parent.  If any child does not have this instance
+            set as its parent, it will automatically be updated to reflect this, provided that this operation is
+            possible.
+
+        Returns
+        -------
+        PartialNamespace[_PT]
+            The created namespace that represent each of the respective fields from the NamespaceProtocol.
+        """
         return cls.from_values(
             parent=cls.from_dict(**parent) if parent is not None else None,
             dependencies={k: cls.from_values(parent=None, **v) for k, v in dependencies.items()},
@@ -128,6 +320,19 @@ class PartialNamespace(Generic[_T], ABC):
 
     @classmethod
     def from_namespace(cls, namespace: NamespaceProtocol[_PT]) -> PartialNamespace[_PT]:
+        """
+        Creates a namespace of this type from any other NamespaceProtocol.
+
+        Parameters
+        ----------
+        namespace : NamespaceProtocol[_PT]
+            The namespace to convert to this type.
+
+        Returns
+        -------
+        PartialNamespace[_PT]
+            The converted namespace.
+        """
         return cls.from_values(namespace.parent, namespace.dependencies, namespace.elements, namespace.children)
 
 
@@ -144,6 +349,19 @@ class MutableNamespace(PartialNamespace[_T]):
 
     @classmethod
     def from_namespace(cls, namespace: NamespaceProtocol[_PT]) -> MutableNamespace[_PT]:
+        """
+        Creates a namespace of this type from any other NamespaceProtocol.
+
+        Parameters
+        ----------
+        namespace : NamespaceProtocol[_PT]
+            The namespace to convert to this type.
+
+        Returns
+        -------
+        MutableNamespace[_PT]
+            The converted namespace.
+        """
         return super().from_namespace(namespace)  # type: ignore
 
     @classmethod
@@ -154,6 +372,29 @@ class MutableNamespace(PartialNamespace[_T]):
         elements: dict[str, _PT],
         children: dict[str, NamespaceProtocol],
     ) -> MutableNamespace[_PT]:
+        """
+        Creates a namespace with full accordance to the NamespaceProtocol, converting any fields if required.
+
+        Parameters
+        ----------
+        parent: Optional[NamespaceProtocol]
+            The parent of this namespace, which can be used to find dependencies for itself or its children.  If parent
+            is None, then this instance is the root and cannot have any dependencies.
+        dependencies: dict[str, NamespaceProtocol]
+            A series of dependencies that are included without priority to the scope, or dictionary interface, of this
+            instance.  Likewise, other elements of this instance can refer to dependencies' elements.
+        elements: dict[str, _T]
+            A series of items that can be referred to inside this namespace's scope and can utilize the dependencies.
+        children: dict[str, NamespaceProtocol]
+            A series of other namespaces that use this instance as its parent.  If any child does not have this instance
+            set as its parent, it will automatically be updated to reflect this, provided that this operation is
+            possible.
+
+        Returns
+        -------
+        MutableNamespace[_PT]
+            The created namespace that represent each of the respective fields from the NamespaceProtocol.
+        """
         return MutableNamespace(parent, dependencies, elements, {k: cls.from_namespace(v) for k, v in children.items()})
 
     @classmethod
